@@ -1,0 +1,9 @@
+body {
+    padding: 10px;
+}
+
+.listing-form p {
+    display: block;
+    margin-bottom: 10px;
+    text-align: left;
+}
