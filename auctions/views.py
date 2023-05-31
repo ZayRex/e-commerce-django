@@ -64,11 +64,14 @@ def register(request):
         return render(request, "auctions/register.html")
     
 def create_listing(request):
+    owner = request.user
     if request.method == 'POST':
         form = ListingForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('index')  # Replace 'listings' with the appropriate URL name for the listings page
+            listing = form.save(commit=False)
+            listing.owner = owner
+            listing.save()
+            return redirect('index')
     else:
         form = ListingForm()
     

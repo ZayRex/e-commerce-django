@@ -13,8 +13,8 @@ class AuctionListing(models.Model):
     image_url = models.URLField(blank=True, null=True)
     category = models.CharField(max_length=50, blank=True, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    creation_time = models.DateField()
-    ending_time = models.DateField()
+    creation_time = models.DateField(blank=True, null=True)
+    ending_time = models.DateField(blank=True, null=True)
 
 class Comment(models.Model):
     listing = models.ForeignKey(AuctionListing, on_delete=models.CASCADE)
