@@ -5,4 +5,4 @@ class ListingForm(forms.ModelForm):
 
     class Meta:
         model = AuctionListing
-        fields = ['title', 'description', 'starting_bid', 'image_url', 'category']
+        fields = ['title', 'description', 'current_price', 'image_url', 'category']

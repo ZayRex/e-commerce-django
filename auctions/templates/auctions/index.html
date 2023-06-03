@@ -7,8 +7,10 @@
     <div>
         <h4>{{listing.title}}</h4>
         {{listing.description}}
-        {{listing.starting_bid}}
+        {{listing.current_price}}
         {{listingn.description}}
+        {% if user.is_authenticated %}
+        {% endif %}
         <img src="{{ listing.image_url }}" alt="No image for this listing">
         <hr>
     </div>

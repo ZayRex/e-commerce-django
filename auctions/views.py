@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import reverse
 from .models import User, AuctionListing
@@ -67,6 +67,8 @@ def register(request):
     
 def create_listing(request):
     owner = request.user
+    if not owner.is_authenticated:
+        return HttpResponseForbidden()
     if request.method == 'POST':
         form = ListingForm(request.POST)
         if form.is_valid():
