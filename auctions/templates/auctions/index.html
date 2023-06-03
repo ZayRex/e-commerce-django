@@ -7,9 +7,23 @@
     <div>
         <h4>{{listing.title}}</h4>
         {{listing.description}}
+        {{listing.description}}
         {{listing.current_price}}
-        {{listingn.description}}
+        {% if not  listing.highest_bidder %}
+        {% firstof current_price as min %}
+        (starting bid)
+        {% else %}
+        {% firstof current_price+0.1 as min %}
+        Highest bidder: {{listing.highest_bidder.username}}
+        {% endfor %}
         {% if user.is_authenticated %}
+        <form method="POST" action="{% url 'index' %}">
+            {% csrf_token %}
+            <label for="bid_amount">Bid Amount:</label>
+            <input type="number" id="bid_amount" name="bid_amount" step="0.01" min="{{min}}" required>
+            <input type="hidden" name="listing_id" value="{{ listing.id }}">
+            <button type="submit">Submit Bid</button>
+        </form>
         {% endif %}
         <img src="{{ listing.image_url }}" alt="No image for this listing">
         <hr>

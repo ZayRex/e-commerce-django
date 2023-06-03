@@ -9,7 +9,16 @@ from django.shortcuts import render, redirect
 
 
 def index(request):
-    return render(request, "auctions/index.html", {
+    if request.method == "POST":
+        bid_amount = float(request.POST["bid_amount"])
+        listing = AuctionListing.objects.get(pk=request.POST["listing_id"])
+        if not listing.highest_bidder and bid_amount<listing.current_price:
+            #return error
+            pass 
+        if bid_amount<=listing.current_price:
+            #return error
+            pass
+    return render(request, "auctions/index.html", { 
         "listings": AuctionListing.objects.all()
     })
 
