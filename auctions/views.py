@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from .models import User, AuctionListing
 from .forms import ListingForm
+from django.contrib import messages
 from django.shortcuts import render, redirect
 
 
@@ -12,12 +13,12 @@ def index(request):
     if request.method == "POST":
         bid_amount = float(request.POST["bid_amount"])
         listing = AuctionListing.objects.get(pk=request.POST["listing_id"])
-        if not listing.highest_bidder and bid_amount<listing.current_price:
-            #return error
-            pass 
-        if bid_amount<=listing.current_price:
-            #return error
-            pass
+        if (not listing.highest_bidder and bid_amount<listing.current_price) or bid_amount<=listing.current_price:
+            messages.error(request, "Please Increase your bid to exceed the minimum amount")
+        else:
+            listing.highest_bidder = User.objects.get(pk=int(request.POST["bidder_id"]))
+            listing.current_price = bid_amount
+            listing.save()
     return render(request, "auctions/index.html", { 
         "listings": AuctionListing.objects.all()
     })
