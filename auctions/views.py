@@ -11,14 +11,24 @@ from django.shortcuts import render, redirect
 
 def index(request):
     if request.method == "POST":
-        bid_amount = float(request.POST["bid_amount"])
         listing = AuctionListing.objects.get(pk=request.POST["listing_id"])
-        if (not listing.highest_bidder and bid_amount<listing.current_price) or bid_amount<=listing.current_price:
-            messages.error(request, "Please Increase your bid to exceed the minimum amount")
-        else:
-            listing.highest_bidder = User.objects.get(pk=int(request.POST["bidder_id"]))
-            listing.current_price = bid_amount
-            listing.save()
+        if request.POST["form_type"]=="bid":
+            bid_amount = float(request.POST["bid_amount"])
+            if (not listing.highest_bidder and bid_amount<listing.current_price) or bid_amount<=listing.current_price:
+                messages.error(request, "Please Increase your bid to exceed the minimum amount")
+            else:
+                #listing.highest_bidder = User.objects.get(pk=int(request.POST["bidder_id"]))
+                listing.highest_bidder = request.user
+                listing.current_price = bid_amount
+                listing.save()
+        elif request.POST["form_type"]=="add_to_watchlist":
+            #user = User.objects.get(pk=int(request.POST["user_id"]))
+            if request.user.watchlist.filter(id=request.POST["listing_id"]).exists():
+                messages.error(request, "The listing is already in your watchlist")
+            else:
+                request.user.watchlist.add(listing)
+                messages.success(request, 'Listing added to watchlist.')
+
     return render(request, "auctions/index.html", { 
         "listings": AuctionListing.objects.all()
     })
@@ -90,3 +100,13 @@ def create_listing(request):
         form = ListingForm()
     
     return render(request, 'auctions/create_listing.html', {'form': form})
+
+def watchlist(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden()
+    if request.method == 'POST':
+        request.user.watchlist.remove(request.POST["listing_id"])
+        messages.success(request, 'Listing removed from watchlist.')
+    return render(request, "auctions/watchlist.html", { 
+        "watchlist": request.user.watchlist.all()
+    })

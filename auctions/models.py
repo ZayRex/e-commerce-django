@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 class User(AbstractUser):
+    watchlist = models.ManyToManyField('AuctionListing', blank=True, related_name='watchlist')
     def __str__(self):
         return self.username
 
