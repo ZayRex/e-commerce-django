@@ -101,6 +101,11 @@ def create_listing(request):
     
     return render(request, 'auctions/create_listing.html', {'form': form})
 
+def listing_page(request, listing_id):
+    return render(request, "auctions/listing_page.html", { 
+        "listings": AuctionListing.objects.all()
+    })
+
 def watchlist(request):
     if not request.user.is_authenticated:
         return HttpResponseForbidden()

@@ -10,38 +10,41 @@
     </ul>
     {% endif %}
     {% for listing in listings %}
-    <div class="listing-div">
-        <h4>{{listing.title}}</h4>
-        <p>{{listing.description}}</p>
-        <p>Current price: {{listing.current_price}}</p>
-        {% if not  listing.highest_bidder %}
-        {% firstof current_price as min %}
-        <p>(starting bid)</p>
-        {% else %}
-        {% firstof current_price|add:"0.1" as min %}
-        <p>Highest bidder: {{listing.highest_bidder.username}}</p>
-        {% endif %}
-        {% if user.is_authenticated %}
-        <form method="POST" action="{% url 'index' %}">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="bid">
-            <label for="bid_amount">Bid Amount:</label>
-            <input type="number" id="bid_amount" name="bid_amount" step="0.01" min="{{min}}" required>
-            <input type="hidden" name="listing_id" value="{{ listing.id }}">
-            <!-- <input type="hidden" name="bidder_id" value="{{ user.id }}"> -->
-            <button type="submit">Submit Bid</button>
-        </form>
-        <form method="POST" action="{% url 'index' %}">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="add_to_watchlist">
-            <input type="hidden" name="listing_id" value="{{ listing.id }}">
-            <button type="submit">Add to Watchlist</button>
-        </form>
-        {% endif %}
-        <div class="photo">
-            <img src="{{ listing.image_url }}" alt="No image for this listing">
+    <a href="{% url 'listing_page' listing.id %}">
+        <div class="listing-div">
+            <div class="photo">
+                <img src="{{ listing.image_url }}" alt="No image for this listing">
+            </div>
+            <div>
+                <h4>{{listing.title}}</h4>
+                <p>{{listing.description}}</p>
+                <p>Current price: {{listing.current_price}}</p>
+                {% if not  listing.highest_bidder %}
+                {% firstof current_price as min %}
+                <p>(starting bid)</p>
+                {% else %}
+                {% firstof current_price|add:"0.1" as min %}
+                <p>Highest bidder: {{listing.highest_bidder.username}}</p>
+                {% endif %}
+                {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'index' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="bid">
+                    <label for="bid_amount">Bid Amount:</label>
+                    <input type="number" id="bid_amount" name="bid_amount" step="0.01" min="{{min}}" required>
+                    <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                    <button type="submit">Submit Bid</button>
+                </form>
+                <form method="POST" action="{% url 'index' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="add_to_watchlist">
+                    <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                    <button type="submit">Add to Watchlist</button>
+                </form>
+                {% endif %}
+            </div>
         </div>
-    </div>
+    </a>
     <br>
     {% endfor %}
 {% endblock %}
