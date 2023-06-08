@@ -10,17 +10,16 @@
     </ul>
     {% endif %}
     {% for listing in listings %}
-    <div>
+    <div class="listing-div">
         <h4>{{listing.title}}</h4>
-        {{listing.description}}
-        {{listing.description}}
-        {{listing.current_price}}
+        <p>{{listing.description}}</p>
+        <p>Current price: {{listing.current_price}}</p>
         {% if not  listing.highest_bidder %}
         {% firstof current_price as min %}
-        (starting bid)
+        <p>(starting bid)</p>
         {% else %}
         {% firstof current_price|add:"0.1" as min %}
-        Highest bidder: {{listing.highest_bidder.username}}
+        <p>Highest bidder: {{listing.highest_bidder.username}}</p>
         {% endif %}
         {% if user.is_authenticated %}
         <form method="POST" action="{% url 'index' %}">
@@ -39,8 +38,10 @@
             <button type="submit">Add to Watchlist</button>
         </form>
         {% endif %}
-        <img src="{{ listing.image_url }}" alt="No image for this listing">
-        <hr>
+        <div class="photo">
+            <img src="{{ listing.image_url }}" alt="No image for this listing">
+        </div>
     </div>
+    <br>
     {% endfor %}
 {% endblock %}

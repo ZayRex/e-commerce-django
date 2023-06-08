@@ -15,7 +15,6 @@ class AuctionListing(models.Model):
     category = models.CharField(max_length=50, blank=True, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     creation_time = models.DateField(blank=True, null=True)
-    ending_time = models.DateField(blank=True, null=True)
     highest_bidder = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='bids')
 
 class Comment(models.Model):
