@@ -10,25 +10,6 @@ from django.shortcuts import render, redirect
 
 
 def index(request):
-    if request.method == "POST":
-        listing = AuctionListing.objects.get(pk=request.POST["listing_id"])
-        if request.POST["form_type"]=="bid":
-            bid_amount = float(request.POST["bid_amount"])
-            if (not listing.highest_bidder and bid_amount<listing.current_price) or bid_amount<=listing.current_price:
-                messages.error(request, "Please Increase your bid to exceed the minimum amount")
-            else:
-                #listing.highest_bidder = User.objects.get(pk=int(request.POST["bidder_id"]))
-                listing.highest_bidder = request.user
-                listing.current_price = bid_amount
-                listing.save()
-        elif request.POST["form_type"]=="add_to_watchlist":
-            #user = User.objects.get(pk=int(request.POST["user_id"]))
-            if request.user.watchlist.filter(id=request.POST["listing_id"]).exists():
-                messages.error(request, "The listing is already in your watchlist")
-            else:
-                request.user.watchlist.add(listing)
-                messages.success(request, 'Listing added to watchlist.')
-
     return render(request, "auctions/index.html", { 
         "listings": AuctionListing.objects.all()
     })
@@ -102,16 +83,46 @@ def create_listing(request):
     return render(request, 'auctions/create_listing.html', {'form': form})
 
 def listing_page(request, listing_id):
+    if request.method == "POST":
+        listing = AuctionListing.objects.get(pk=listing_id)
+        if request.POST["form_type"]=="bid":
+            bid_amount = float(request.POST["bid_amount"])
+            if (not listing.highest_bidder and bid_amount<listing.current_price) or bid_amount<=listing.current_price:
+                messages.error(request, "Please Increase your bid to exceed the minimum amount")
+            else:
+                listing.highest_bidder = request.user
+                listing.current_price = bid_amount
+                listing.save()
+        elif request.POST["form_type"]=="add_to_watchlist":
+            #user = User.objects.get(pk=int(request.POST["user_id"]))
+            if request.user.watchlist.filter(id=request.POST["listing_id"]).exists():
+                messages.error(request, "The listing is already in your watchlist")
+            else:
+                request.user.watchlist.add(listing)
+                messages.success(request, 'Listing added to watchlist.')
+        else:
+            if request.user.watchlist.filter(id=listing_id).exists():
+                messages.error(request, "The listing is not in your watchlist")
+            else:
+                request.user.watchlist.remove(listing)
+                messages.success(request, 'Listing removed to watchlist.')
+
     return render(request, "auctions/listing_page.html", { 
-        "listings": AuctionListing.objects.all()
+        "listing": AuctionListing.objects.get(pk=listing_id)
     })
 
-def watchlist(request):
+def watchlist(request, listing_id=None):
     if not request.user.is_authenticated:
         return HttpResponseForbidden()
+    
     if request.method == 'POST':
-        request.user.watchlist.remove(request.POST["listing_id"])
-        messages.success(request, 'Listing removed from watchlist.')
+        if not listing_id:
+            request.POST["listing_id"]  
+        if request.user.watchlist.filter(id=request.POST["listing_id"]).exists():
+                messages.error(request, "The listing is not in your watchlist")
+        else:
+            request.user.watchlist.remove(listing)
+            messages.success(request, 'Listing removed to watchlist.')
     return render(request, "auctions/watchlist.html", { 
         "watchlist": request.user.watchlist.all()
     })
