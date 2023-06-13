@@ -83,6 +83,9 @@ def create_listing(request):
     return render(request, 'auctions/create_listing.html', {'form': form})
 
 def listing_page(request, listing_id):
+    in_watchlist = False
+    if request.user.watchlist.filter(id=listing_id).exists():
+        in_watchlist = True
     if request.method == "POST":
         listing = AuctionListing.objects.get(pk=listing_id)
         if request.POST["form_type"]=="bid":
@@ -93,22 +96,25 @@ def listing_page(request, listing_id):
                 listing.highest_bidder = request.user
                 listing.current_price = bid_amount
                 listing.save()
+                messages.success(request, 'You are the highest bidder!')
         elif request.POST["form_type"]=="add_to_watchlist":
-            #user = User.objects.get(pk=int(request.POST["user_id"]))
-            if request.user.watchlist.filter(id=request.POST["listing_id"]).exists():
+            if in_watchlist:
                 messages.error(request, "The listing is already in your watchlist")
             else:
                 request.user.watchlist.add(listing)
+                in_watchlist = True
                 messages.success(request, 'Listing added to watchlist.')
         else:
-            if request.user.watchlist.filter(id=listing_id).exists():
+            if not in_watchlist:
                 messages.error(request, "The listing is not in your watchlist")
             else:
                 request.user.watchlist.remove(listing)
+                in_watchlist = False
                 messages.success(request, 'Listing removed to watchlist.')
 
     return render(request, "auctions/listing_page.html", { 
-        "listing": AuctionListing.objects.get(pk=listing_id)
+        "listing": AuctionListing.objects.get(pk=listing_id),
+        "in_watchlist": in_watchlist
     })
 
 def watchlist(request, listing_id=None):
@@ -117,10 +123,11 @@ def watchlist(request, listing_id=None):
     
     if request.method == 'POST':
         if not listing_id:
-            request.POST["listing_id"]  
-        if request.user.watchlist.filter(id=request.POST["listing_id"]).exists():
+            listing_id = request.POST["listing_id"]  
+        if not request.user.watchlist.filter(id=listing_id).exists():
                 messages.error(request, "The listing is not in your watchlist")
         else:
+            listing = AuctionListing.objects.get(pk=listing_id)
             request.user.watchlist.remove(listing)
             messages.success(request, 'Listing removed to watchlist.')
     return render(request, "auctions/watchlist.html", { 

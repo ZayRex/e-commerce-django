@@ -10,9 +10,30 @@
     </ul>
     {% endif %}
     {% for listing in watchlist %}
-    <div>
+    <div class="listing-div">
+        <div class="photo">
+            <img src="{{ listing.image_url }}" alt="No image for this listing">
+        </div>
+        <div>
+            <a href="{% url 'listing_page' listing.id %}"><h4>{{listing.title}}</h4></a>
+            <p>{{listing.description}}</p>
+            <p>Current price: {{listing.current_price}}</p>
+            {% if not  listing.highest_bidder %}
+            {% firstof current_price as min %}
+            <p>(starting bid)</p>
+            {% else %}
+            {% firstof current_price|add:"0.1" as min %}
+            <p>Highest bidder: {{listing.highest_bidder.username}}</p>
+            {% endif %}
+            <p><form method="POST" action="{% url 'watchlist' %}">
+                {% csrf_token %}
+                <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                <button type="submit">Remove from Watchlist</button>
+            </form></p>
+        </div>
+    </div>
+    <!-- <div>
         <h4>{{listing.title}}</h4>
-        {{listing.description}}
         {{listing.description}}
         {{listing.current_price}}
         {% if not  listing.highest_bidder %}
@@ -20,13 +41,9 @@
         {% else %}
         Highest bidder: {{listing.highest_bidder.username}}
         {% endif %}
-        <form method="POST" action="{% url 'watchlist' %}">
-            {% csrf_token %}
-            <input type="hidden" name="listing_id" value="{{ listing.id }}">
-            <button type="submit">Remove from Watchlist</button>
-        </form>
+        
         <img src="{{ listing.image_url }}" alt="No image for this listing">
         <hr>
-    </div>
+    </div> -->
     {% endfor %}
 {% endblock %}
