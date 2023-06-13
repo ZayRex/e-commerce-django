@@ -24,31 +24,41 @@
         <p>Highest bidder: {{listing.highest_bidder.username}}</p>
     {% endif %}
     {% if user.is_authenticated %}
-        <p><form method="POST" action="{% url 'listing_page' listing.id%}">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="bid">
-            <label for="bid_amount">Bid Amount:</label>
-            <input type="number" id="bid_amount" name="bid_amount" step="0.01" min="{{min}}" required>
-            <input type="hidden" name="listing_id" value="{{ listing.id }}">
-            <button type="submit">Submit Bid</button>
-        </form></p>
-        {% if not in_watchlist%}
-        <p><form method="POST" action="{% url 'listing_page' listing.id %}">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="add_to_watchlist">
-            <input type="hidden" name="listing_id" value="{{ listing.id }}">
-            <button type="submit">Add to Watchlist</button>
-        </form></p>
-        {% else %}
-        <p>This item is in your watchlist</p>
-        <p><form method="POST" action="{% url 'listing_page' listing.id %}">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="remove_from_watch_list">
-            <input type="hidden" name="listing_id" value="{{ listing.id }}">
-            <button type="submit">Remove from Watchlist</button>
-        </form></p>
+        {% if user.id == listing.owner.id %}
+            <p><form method="POST" action="{% url 'listing_page' listing.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="Close listing">
+                <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                <button type="submit">Close listing</button>
+            </form></p>
+        {% else%}
+            <p><form method="POST" action="{% url 'listing_page' listing.id%}">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="bid">
+                <label for="bid_amount">Bid Amount:</label>
+                <input type="number" id="bid_amount" name="bid_amount" step="0.01" min="{{min}}" required>
+                <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                <button type="submit">Submit Bid</button>
+            </form></p>
+            {% if not in_watchlist%}
+                <p><form method="POST" action="{% url 'listing_page' listing.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="add_to_watchlist">
+                    <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                    <button type="submit">Add to Watchlist</button>
+                </form></p>
+            {% else %}
+                <p>This item is in your watchlist</p>
+                <p><form method="POST" action="{% url 'listing_page' listing.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="remove_from_watch_list">
+                    <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                    <button type="submit">Remove from Watchlist</button>
+                </form></p>
+            {% endif %}
         {% endif %}
     {% endif %}
+
     </div>
     </div>
     <br>

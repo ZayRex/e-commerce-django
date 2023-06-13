@@ -11,7 +11,7 @@ from django.shortcuts import render, redirect
 
 def index(request):
     return render(request, "auctions/index.html", { 
-        "listings": AuctionListing.objects.all()
+        "listings": AuctionListing.objects.filter(is_active=True)
     })
 
 
@@ -84,10 +84,16 @@ def create_listing(request):
 
 def listing_page(request, listing_id):
     in_watchlist = False
-    if request.user.watchlist.filter(id=listing_id).exists():
+    listing = AuctionListing.objects.get(pk=listing_id)
+    if request.user.is_authenticated and request.user.watchlist.filter(id=listing_id).exists():
         in_watchlist = True
+    if not listing.is_active:
+        if request.user == listing.highest_bidder:
+            messages.success(request, 'The listing was closed, you won!')
+        else:
+            messages.error(request, 'The listing was closed. Unfortunately you have not won the item.')
+    
     if request.method == "POST":
-        listing = AuctionListing.objects.get(pk=listing_id)
         if request.POST["form_type"]=="bid":
             bid_amount = float(request.POST["bid_amount"])
             if (not listing.highest_bidder and bid_amount<listing.current_price) or bid_amount<=listing.current_price:
@@ -104,14 +110,18 @@ def listing_page(request, listing_id):
                 request.user.watchlist.add(listing)
                 in_watchlist = True
                 messages.success(request, 'Listing added to watchlist.')
-        else:
+        elif request.POST["form_type"]=="remove_from_watchlist":
             if not in_watchlist:
                 messages.error(request, "The listing is not in your watchlist")
             else:
                 request.user.watchlist.remove(listing)
                 in_watchlist = False
                 messages.success(request, 'Listing removed to watchlist.')
-
+        else:
+            listing.is_active = False
+            listing.save()
+            messages.success(request, 'Listing is now closed.')
+    
     return render(request, "auctions/listing_page.html", { 
         "listing": AuctionListing.objects.get(pk=listing_id),
         "in_watchlist": in_watchlist
