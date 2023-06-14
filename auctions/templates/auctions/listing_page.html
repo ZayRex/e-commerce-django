@@ -62,4 +62,22 @@
     </div>
     </div>
     <br>
+    <h2>Comments</h2>
+{% for comment in comments %}
+    <div class="comment">
+        <p>{{ comment.content }}</p>
+        <p>Posted by: {{ comment.user.username }}</p>
+        <p>Posted at: {{ comment.created_at }}</p>
+    </div>
+{% empty %}
+    <p>No comments yet.</p>
+{% endfor %}
+
+<!-- Comment form -->
+<h2>Add a Comment</h2>
+<form method="POST" action="{% url 'add_comment' listing.id %}">
+    {% csrf_token %}
+    {{ comment_form.as_p }}
+    <button type="submit">Submit</button>
+</form>
 {% endblock %}

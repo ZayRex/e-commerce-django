@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.shortcuts import render
 from django.urls import reverse
 from .models import User, AuctionListing
-from .forms import ListingForm
+from .forms import ListingForm, CommentForm
 from django.contrib import messages
 from django.shortcuts import render, redirect
 
@@ -121,10 +121,11 @@ def listing_page(request, listing_id):
             listing.is_active = False
             listing.save()
             messages.success(request, 'Listing is now closed.')
-    
+    comment_form = CommentForm()
     return render(request, "auctions/listing_page.html", { 
         "listing": AuctionListing.objects.get(pk=listing_id),
-        "in_watchlist": in_watchlist
+        "in_watchlist": in_watchlist,
+        "comment_form": comment_form
     })
 
 def watchlist(request, listing_id=None):
