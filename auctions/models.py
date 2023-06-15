@@ -13,16 +13,16 @@ class AuctionListing(models.Model):
     current_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
     image_url = models.URLField(blank=True, null=True)
     category = models.CharField(max_length=50, blank=True, null=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listing_owner")
     creation_time = models.DateField(blank=True, null=True)
     highest_bidder = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='bids')
-    comments = models.ManyToManyField(User, through='Comment')
+    comments = models.ManyToManyField('Comment', blank=True, related_name='users_comments')
     is_active = models.BooleanField(default=True)
 
 class Comment(models.Model):
     listing = models.ForeignKey(AuctionListing, on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    comment = models.TextField(max_length=500)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="Comment_owner")
+    comment_content = models.TextField(max_length=500)
     time = models.DateField()
 
 class Bid(models.Model):

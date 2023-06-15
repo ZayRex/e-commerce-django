@@ -1,12 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest, Http404
 from django.shortcuts import render
 from django.urls import reverse
-from .models import User, AuctionListing
+from .models import User, AuctionListing, Comment
 from .forms import ListingForm, CommentForm
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from django.utils import timezone
 
 
 def index(request):
@@ -83,17 +84,24 @@ def create_listing(request):
     return render(request, 'auctions/create_listing.html', {'form': form})
 
 def listing_page(request, listing_id):
-    in_watchlist = False
-    listing = AuctionListing.objects.get(pk=listing_id)
-    if request.user.is_authenticated and request.user.watchlist.filter(id=listing_id).exists():
-        in_watchlist = True
+    try:
+        listing = AuctionListing.objects.get(pk=listing_id)
+    except (AuctionListing.DoesNotExist, ValueError):
+        raise Http404("Listing does not exist")
+    comments = listing.comments.all()
+    in_watchlist = request.user.is_authenticated and request.user.watchlist.filter(id=listing_id).exists()
+
+    #show notification when listing is closed
     if not listing.is_active:
         if request.user == listing.highest_bidder:
             messages.success(request, 'The listing was closed, you won!')
         else:
             messages.error(request, 'The listing was closed. Unfortunately you have not won the item.')
     
+
     if request.method == "POST":
+
+        #bidding post requests
         if request.POST["form_type"]=="bid":
             bid_amount = float(request.POST["bid_amount"])
             if (not listing.highest_bidder and bid_amount<listing.current_price) or bid_amount<=listing.current_price:
@@ -103,6 +111,8 @@ def listing_page(request, listing_id):
                 listing.current_price = bid_amount
                 listing.save()
                 messages.success(request, 'You are the highest bidder!')
+
+        #add to watchlist post request
         elif request.POST["form_type"]=="add_to_watchlist":
             if in_watchlist:
                 messages.error(request, "The listing is already in your watchlist")
@@ -110,6 +120,8 @@ def listing_page(request, listing_id):
                 request.user.watchlist.add(listing)
                 in_watchlist = True
                 messages.success(request, 'Listing added to watchlist.')
+        
+        #remove from watchlist post request
         elif request.POST["form_type"]=="remove_from_watchlist":
             if not in_watchlist:
                 messages.error(request, "The listing is not in your watchlist")
@@ -117,15 +129,19 @@ def listing_page(request, listing_id):
                 request.user.watchlist.remove(listing)
                 in_watchlist = False
                 messages.success(request, 'Listing removed to watchlist.')
+        
+        #close listing post request
         else:
             listing.is_active = False
             listing.save()
             messages.success(request, 'Listing is now closed.')
+
     comment_form = CommentForm()
     return render(request, "auctions/listing_page.html", { 
-        "listing": AuctionListing.objects.get(pk=listing_id),
+        "listing": listing,
         "in_watchlist": in_watchlist,
-        "comment_form": comment_form
+        "comment_form": comment_form,
+        "comments": comments
     })
 
 def watchlist(request, listing_id=None):
@@ -144,3 +160,22 @@ def watchlist(request, listing_id=None):
     return render(request, "auctions/watchlist.html", { 
         "watchlist": request.user.watchlist.all()
     })
+
+def add_comment(request, listing_id):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden()
+    if request.method == 'POST':
+        listing = AuctionListing.objects.get(id=listing_id)
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.listing = listing
+            comment.owner = request.user
+            comment.time = timezone.now()
+            comment.save()
+            listing.comments.add(comment)
+            return redirect('listing_page', listing_id)
+        else:
+            messages.error(request, "Cannot post comment")
+            return redirect('listing_page', listing_id)
+    return HttpResponseBadRequest("Invalid request method")

@@ -1,5 +1,5 @@
 from django import forms
-from .models import AuctionListing
+from .models import AuctionListing, Comment
 
 class ListingForm(forms.ModelForm):
 
@@ -7,5 +7,7 @@ class ListingForm(forms.ModelForm):
         model = AuctionListing
         fields = ['title', 'description', 'current_price', 'image_url', 'category']
 
-class CommentForm(forms.Form):
-    content = forms.CharField(widget=forms.Textarea)
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['comment_content']
