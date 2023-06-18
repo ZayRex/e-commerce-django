@@ -8,11 +8,16 @@ from .forms import ListingForm, CommentForm
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.db.models import Count
 
 
 def index(request):
+    category = request.GET.get('category')
+    listings = AuctionListing.objects.filter(is_active=True)
+    if category:
+        listings = listings.filter(category=category)
     return render(request, "auctions/index.html", { 
-        "listings": AuctionListing.objects.filter(is_active=True)
+        "listings": listings
     })
 
 
@@ -179,3 +184,7 @@ def add_comment(request, listing_id):
             messages.error(request, "Cannot post comment")
             return redirect('listing_page', listing_id)
     return HttpResponseBadRequest("Invalid request method")
+
+def categories(request):
+    categories = AuctionListing.objects.exclude(category__isnull=True).values('category').annotate(count=Count('category')).order_by('category')
+    return render(request, 'auctions/categories.html', {'categories': categories})
