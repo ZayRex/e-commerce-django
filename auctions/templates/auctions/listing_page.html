@@ -16,6 +16,8 @@
     <div>
     <p>{{listing.description}}</p>
     <p>Current price: {{listing.current_price}}</p>
+    <p>Listed by: {{listing.owner}}</p>
+    <p>Category: {% if listing.category %}{{listing.category}}{% else %}No category{% endif %}</p>
     {% if not  listing.highest_bidder %}
         {% firstof current_price as min %}
         <p>(starting bid)</p>
@@ -51,7 +53,7 @@
                 <p>This item is in your watchlist</p>
                 <p><form method="POST" action="{% url 'listing_page' listing.id %}">
                     {% csrf_token %}
-                    <input type="hidden" name="form_type" value="remove_from_watch_list">
+                    <input type="hidden" name="form_type" value="remove_from_watchlist">
                     <input type="hidden" name="listing_id" value="{{ listing.id }}">
                     <button type="submit">Remove from Watchlist</button>
                 </form></p>

@@ -18,15 +18,21 @@ class AuctionListing(models.Model):
     highest_bidder = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='bids')
     comments = models.ManyToManyField('Comment', blank=True, related_name='users_comments')
     is_active = models.BooleanField(default=True)
+    def __str__(self):
+        return self.title
 
 class Comment(models.Model):
     listing = models.ForeignKey(AuctionListing, on_delete=models.CASCADE)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="Comment_owner")
     comment_content = models.TextField(max_length=500)
     time = models.DateField()
-
+    def __str__(self):
+        return f"by {self.owner} on {self.listing} ({self.time})"
+    
 class Bid(models.Model):
     listing = models.ForeignKey(AuctionListing, on_delete=models.CASCADE)
     bidder = models.ForeignKey(User, on_delete=models.CASCADE)
     bid_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
     bid_time = models.DateTimeField()
+    def __str__(self):
+       return f"by {self.bidder} on {self.listing} ({self.bid_amount})"
